@@ -1,4 +1,5 @@
 saved_models/
+video_results/
 tb_runs/
 .idea
 __pycache__

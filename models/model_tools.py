@@ -18,7 +18,7 @@ class SegNetDown(nn.Module):
         dropout (booelan): Whether to apply spatial dropout at the end
         maxpool (booelan): Whether to apply max pool in the beginning
     """
-    def __init__(self, in_ch, out_ch, num_rep, batch_norm=False, activation=nn.ReLU(), kernel_size=3,
+    def __init__(self, in_ch, out_ch, num_rep, batch_norm=False , activation=nn.ReLU(), kernel_size=3,
                  dropout=False, maxpool=False):
         super().__init__()
         self.down_block = nn.Sequential()
@@ -46,49 +46,65 @@ class SegNetUp(nn.Module):
         in_ch (int): Number of input channels for each conv layer
         res_ch (int): Number of channels coming from the residual, if equal to 0 and no skip connections
         out_ch (int): Number of output channels for each conv layer
-        num_rep (int): Number of repeated conv-batchnorm layers
-        batch_norm (bool): Whether to use batch norm after conv layers
+        num_rep (int): Number of repeated conv-inst_norm layers
+        inst_norm (bool): Whether to use Instance norm after conv layers
         activation (torch.nn module): Activation function to be used after each conv layer
         kernel_size (int): Size of the convolutional kernels
         dropout (booelan): Whether to apply spatial dropout at the end
     """
 
-    def __init__(self, in_ch, res_ch, out_ch, num_rep, batch_norm=False, activation=nn.ReLU(), kernel_size=3,
-                 dropout=False):
+    def __init__(self, in_ch, res_ch, out_ch, inst_norm=False, activation=nn.ReLU(),
+                 kernel_size=3):
 
         super().__init__()
         self.up = nn.Sequential()
         self.conv_block = nn.Sequential()
+        self.conv1d_block = nn.Sequential()
 
-        self.up.add_module("conv2d_transpose", nn.ConvTranspose2d(in_ch, in_ch, kernel_size, stride=2,
-                                                                  output_padding=(int((kernel_size-1)/2)),
-                                                                  padding=(int((kernel_size-1)/2))))
-        if batch_norm:
-            self.up.add_module("bn1", nn.BatchNorm2d(in_ch))
+        if res_ch is not None:
+            self.conv1d_block.add_module("conv1d", nn.Conv1d(res_ch, out_ch, kernel_size=(1, 1)))
 
-        in_ch_for_conv = in_ch + res_ch
-        for k in range(num_rep):
-            self.conv_block.add_module("conv%d"%(k+1), nn.Conv2d(in_ch_for_conv, out_ch,
-                                                        kernel_size=kernel_size, padding=(int((kernel_size-1)/2))))
-            self.conv_block.add_module("act%d"%(k+1), activation)
-            if batch_norm:
-                self.conv_block.add_module("bn%d"%(k+2), nn.BatchNorm2d(out_ch))
-            in_ch_for_conv = out_ch
-        if dropout:
-            self.conv_block.add_module("dropout", nn.Dropout2d(p=0.5))
+        self.up.add_module("Upsampling", nn.Upsample(scale_factor=2, mode='nearest'))
 
-    def forward(self, inp, res=None):
+        self.conv_block.add_module("conv2d", nn.Conv2d(in_ch, out_ch,
+                                                       kernel_size=kernel_size, padding=(int((kernel_size-1)/2))))
+
+        if inst_norm:
+            self.conv_block.add_module("inst_norm", nn.InstanceNorm2d(out_ch))
+
+        self.conv_block.add_module("act", activation)
+
+
+    def forward(self, inp, res=None, conv1d=False, upSampling=False):
         """
         Args:
             inp (tensor): Input tensor
             res (tensor): Residual tensor to be merged, if res=None no skip connections
         """
-        feat = self.up(inp)
+        feat = self.conv_block(inp)
         if res is None:
-            merged = feat
+            merged =feat
         else:
-            merged = torch.cat([feat, res], dim=1)
-        return self.conv_block(merged)
+            if conv1d is True:
+                x = self.conv1d_block(res)
+            else:
+                x = res
+
+            # Global average pooling
+            feat_scaled_tensor = []
+            avg_feat_tensor = torch.mean(x.view(x.size(0), x.size(1), -1), dim=2)
+            for idx, avg_feat in enumerate(avg_feat_tensor):
+                feat_scaled_tensor.append((torch.unsqueeze(feat[idx], 0).permute(0, 2, 3, 1) * avg_feat).permute(0, 3, 1, 2))
+
+            # Adding feature map by scaled one
+            feat_scaled_tensor = torch.cat(feat_scaled_tensor, dim=0)
+            merged = feat + feat_scaled_tensor
+
+        if upSampling is True:
+            output = self.up(merged)
+        else:
+            output = merged
+        return output
 
 class M_FPM(nn.Module):
     """
@@ -99,8 +115,10 @@ class M_FPM(nn.Module):
 
         in_ch_for_conv = in_ch
         self.fpm_block_1 = nn.Sequential()
+        #self.fpm_block_1.add_module("zero pad", nn.ZeroPad2d((0, 1, 0, 1)))
+        #self.fpm_block_1.add_module("pool", nn.MaxPool2d(kernel_size=(2,2), stride=(1, 1)))
         self.fpm_block_1.add_module("conv2d", nn.Conv2d(in_ch_for_conv, out_ch,
-                                                        kernel_size=kernel_size, padding=(int((kernel_size - 1)/2))))
+                                                        kernel_size=(1, 1)))
 
         self.fpm_block_2 = nn.Sequential()
         self.fpm_block_2.add_module("conv2d", nn.Conv2d(in_ch_for_conv, out_ch,
@@ -131,6 +149,7 @@ class M_FPM(nn.Module):
         self.fpm_out_block = nn.Sequential()
         self.fpm_out_block.add_module("inst_norm", nn.InstanceNorm2d(in_ch))
         self.fpm_out_block.add_module("act", nn.ReLU())
+        self.fpm_out_block.add_module("dropout", nn.Dropout2d(0.25))
 
     def forward(self, inp):
         res_1 = self.fpm_block_1(inp)
@@ -149,6 +168,7 @@ class M_FPM(nn.Module):
         fpm_out = self.fpm_out_block(merged)
 
         return fpm_out
+
 
 class ConvSig(nn.Module):
     """ Conv layer + Sigmoid

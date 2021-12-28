@@ -1,5 +1,5 @@
 """
-Data loader file for CD2014 dataset
+Data loader file for Cd2014 dataset
 """
 
 import csv
@@ -11,7 +11,7 @@ from configs import data_config
 import cv2
 import glob
 
-class CD2014Dataset(data.Dataset):
+class Cd2014Dataset(data.Dataset):
     """
     Data loader class
     """
@@ -36,7 +36,7 @@ class CD2014Dataset(data.Dataset):
                 # Find out the required frame ids (either selected or all the ones that have gt)
                 if use_selected == -1:
                     last_fr = int(
-                        sorted(glob.glob(os.path.join(data_config.current_fr_dir.format(cat=cat, vid=vid), "*.jpg")))[
+                        sorted(glob.glob(os.path.join(data_config.fr_dir.format(cat=cat, vid=vid), "*.jpg")))[
                             -1][-10:-4])
                     fr_ids = [idx for idx in range(1, last_fr + 1)]
                 elif use_selected:

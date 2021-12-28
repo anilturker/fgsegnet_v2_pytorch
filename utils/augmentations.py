@@ -26,7 +26,7 @@ import torch
 import numpy as np
 import cv2
 from utils import augmentations as aug
-from utils.data_loader import CD2014Dataset
+from utils.data_loader import Cd2014Dataset
 
 only_rgb_inputs = ["empty_bg", "recent_bg",  "current_fr"]
 only_seg_inputs = ["empty_bg_seg", "recent_bg_seg",  "current_fr_seg"]

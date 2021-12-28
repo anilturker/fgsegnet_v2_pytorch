@@ -1,7 +1,7 @@
 """Cross-validation sets used for video-agnostic evaluation
 """
 datasets_tr = {
-    0: {'baseline':['highway', 'pedestrians', 'office', 'PETS2006'],
+    0: {'baseline': ['highway', 'pedestrians', 'office', 'PETS2006'],
         'cameraJitter':['badminton', 'traffic', 'boulevard', 'sidewalk'],
         'badWeather':['skating', 'blizzard', 'snowFall', 'wetSnow'],
         'dynamicBackground':['boats', 'canoe', 'fall', 'fountain01', 'fountain02', 'overpass'],

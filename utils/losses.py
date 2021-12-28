@@ -50,7 +50,7 @@ def cross_entropy(true, pred):
     """
     """
     bce = (true * pred.log()) + ((1 - true) * (1 - pred).log())  # Binary cross-entropy
-    return -torch.mean(bce)
+    return -torch.mean(bce) + 1e-8
 
 def weighted_crossentropy(true, pred, weight_pos=15, weight_neg=1):
     """Weighted cross entropy between ground truth and predictions
