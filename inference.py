@@ -38,11 +38,8 @@ if __name__ == '__main__':
                         default='jaccard',
                         help='Loss function, cross-entropy, jaccard or weighted_crossentropy')
 
-    # Cross-validation
-    # You can select more than one train-test split, specify the id's of them
     parser.add_argument('--set_number', metavar='Which training-test split to use from config file', dest='set_number',
-                        type=int, default=[5], help='Training and test videos will be selected based on the set number')
-
+                        type=int, default=5, help='Training and test videos will be selected based on the set number')
     # Model name
     parser.add_argument('--model_name', metavar='Name of the model for log keeping', dest='model_name',
                         type=str, default='FgSegNet 2.0',
@@ -82,19 +79,16 @@ if __name__ == '__main__':
     dataset_test_list = []
 
     if tr_strategy == 1:
-        dataset_tr_list = tr_test_config.datasets_tr[0]
-        dataset_test_list = tr_test_config.datasets_test[0]
-        video_optimized_dataset_tr = []
-        for key in dataset_tr_list:
-            for value in dataset_tr_list[key]:
-                video_optimized_dataset_tr.append({key: [value]})
+        dataset_test_list = tr_test_config.datasets_test[dataset_number]
+        video_optimized_dataset_test = []
+        for key in dataset_test_list:
+            for value in dataset_test_list[key]:
+                video_optimized_dataset_test.append({key: [value]})
 
-        dataset_tr_list = video_optimized_dataset_tr
-        dataset_test_list = video_optimized_dataset_tr
+        dataset_test_list = video_optimized_dataset_test
 
     elif tr_strategy == 0:
         for number in dataset_number:
-            dataset_tr_list.append(tr_test_config.datasets_tr[number])
             dataset_test_list.append(tr_test_config.datasets_test[number])
 
     # Locations of each video in the CSV file
@@ -130,10 +124,10 @@ if __name__ == '__main__':
         employee_writer.writerow(metric_row)
 
     # Evaluation on test videos
-    for (dataset_tr, dataset_test) in zip(dataset_tr_list, dataset_test_list):
+    for dataset_test in dataset_test_list:
 
         if tr_strategy == 1:
-            key, value = list(dataset_tr.items())[0]
+            key, value = list(dataset_test.items())[0]
             saved_weight_ext = key + '_' + value[0]
 
         elif tr_strategy == 0:

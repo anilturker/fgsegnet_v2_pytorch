@@ -61,7 +61,18 @@ datasets_tr = {
         'thermal':['corridor', 'diningRoom', 'lakeSide', 'library'],
         'turbulence':['turbulence0', 'turbulence1', 'turbulence2']
         }, # CV fold 4
-    5: {'baseline':['highway'],
+    5: {'baseline': ['highway', 'office', 'PETS2006'],
+        'cameraJitter': ['badminton', 'boulevard', 'sidewalk'],
+        'badWeather': ['skating', 'snowFall', 'wetSnow'],
+        'dynamicBackground': ['canoe', 'fall', 'fountain01', 'fountain02', 'overpass'],
+        'intermittentObjectMotion': ['abandonedBox', 'sofa', 'streetLight', 'tramstop', 'winterDriveway'],
+        'lowFramerate': ['port_0_17fps', 'tramCrossroad_1fps', 'tunnelExit_0_35fps'],
+        'nightVideos': ['bridgeEntry', 'busyBoulvard', 'fluidHighway', 'streetCornerAtNight', 'winterStreet'],
+        'shadow': ['backdoor', 'bungalows', 'cubicle', 'peopleInShade'],
+        'thermal': ['diningRoom', 'lakeSide', 'library', 'park'],
+        'turbulence': ['turbulence1', 'turbulence2', 'turbulence3']
+        },  # 3DFR-Paper train set
+    6: {'baseline':['highway'],
         }, # small dataset for quick debugging
 }
 
@@ -127,6 +138,17 @@ datasets_test = {
         'thermal':['park'],
         'turbulence':['turbulence3']
         },
-    5: {'baseline':['highway'],
+    5: {'baseline': ['pedestrians'],
+        'cameraJitter': ['traffic'],
+        'badWeather': ['blizzard'],
+        'dynamicBackground': ['boats'],
+        'intermittentObjectMotion': ['parking'],
+        'lowFramerate': ['turnpike_0_5fps'],
+        'nightVideos': ['tramStation'],
+        'shadow': ['busStation'],
+        'thermal': ['corridor'],
+        'turbulence': ['turbulence0']
+        },  # 3DFR-Paper test set
+    6: {'baseline':['highway'],
         }, # small dataset for quick debugging
 }

@@ -34,7 +34,7 @@ if __name__ == "__main__":
                              'Assumes square sized input')
 
     # Training options
-    parser.add_argument('--tr_strategy', metavar='Training strategy', dest='tr_str', type=int, default=0,
+    parser.add_argument('--tr_strategy', metavar='Training strategy', dest='tr_str', type=int, default=1   ,
                         help='0: Video-optimized, 1:Video-agnostic ')
 
     # Optimization
@@ -42,7 +42,9 @@ if __name__ == "__main__":
                         help='learning rate of the optimization')
     parser.add_argument('--weight_decay', metavar='weight_decay', dest='weight_decay', type=float, default=1e-4,
                         help='weight decay of the optimization')
-    parser.add_argument('--num_epochs', metavar='Number of epochs', dest='num_epochs', type=int, default=20,
+    parser.add_argument('--num_epochs', metavar='Number of epochs', dest='num_epochs', type=int, default=30
+
+                        ,
                         help='Maximum number of epochs')
     parser.add_argument('--batch_size', metavar='Minibatch size', dest='batch_size', type=int, default=4,
                         help='Number of samples per minibatch')
@@ -55,7 +57,7 @@ if __name__ == "__main__":
     # Cross-validation
     # You can select more than one train-test split, specify the id's of them
     parser.add_argument('--set_number', metavar='Which training-test split to use from config file', dest='set_number',
-                        type=int, default=[0], help='Training and test videos will be selected based on the set number')
+                        type=int, default=[1], help='Training and test videos will be selected based on the set number')
 
     # Model name
     parser.add_argument('--model_name', metavar='Name of the model for log keeping', dest='model_name',
